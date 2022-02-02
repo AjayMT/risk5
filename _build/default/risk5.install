@@ -1,8 +1,0 @@
-lib: [
-  "_build/install/default/lib/risk5/META"
-  "_build/install/default/lib/risk5/dune-package"
-  "_build/install/default/lib/risk5/opam"
-]
-bin: [
-  "_build/install/default/bin/risk5"
-]
