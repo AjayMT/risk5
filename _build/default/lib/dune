@@ -1,0 +1,7 @@
+(library
+ (name risk5)
+ (libraries hardcaml)
+ (preprocess
+  (pps ppx_jane ppx_deriving_hardcaml)))
+
+(include_subdirs unqualified)

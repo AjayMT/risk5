@@ -1,0 +1,4 @@
+(executable
+ (public_name risk5)
+ (name main)
+ (libraries risk5))

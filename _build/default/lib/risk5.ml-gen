@@ -1,0 +1,10 @@
+(** @canonical Risk5.Alu *)
+module Alu = Risk5__Alu
+
+
+(** @canonical Risk5.Control *)
+module Control = Risk5__Control
+
+
+(** @canonical Risk5.Fetch *)
+module Fetch = Risk5__Fetch

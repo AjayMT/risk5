@@ -1,0 +1,6 @@
+(** @canonical Risk5_tests.Alu *)
+module Alu = Risk5_tests__Alu
+
+
+(** @canonical Risk5_tests.Risk5 *)
+module Risk5 = Risk5_tests__Risk5

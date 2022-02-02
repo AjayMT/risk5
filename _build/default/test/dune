@@ -1,0 +1,7 @@
+(library
+ (name risk5_tests)
+ (inline_tests
+  (flags (-verbose)))
+ (libraries hardcaml hardcaml_waveterm risk5)
+ (preprocess
+  (pps ppx_jane ppx_expect)))
