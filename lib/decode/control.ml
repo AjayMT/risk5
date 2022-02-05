@@ -3,16 +3,7 @@ module I = struct
 end
 
 module O = struct
-  type 'a t = {
-    alu_op : 'a; [@bits 4]
-    alu_src : 'a; [@bits 1]
-    reg_write : 'a; [@bits 1]
-    mem_read : 'a; [@bits 1]
-    mem_write : 'a; [@bits 1]
-    mem_to_reg : 'a; [@bits 1]
-    pc_src : 'a; [@bits 1]
-  }
-  [@@deriving sexp_of, hardcaml]
+  type 'a t = { alu_op : 'a [@bits 4] } [@@deriving sexp_of, hardcaml]
 end
 
 let alu_op_of_int = Hardcaml.Signal.of_int ~width:4
@@ -43,17 +34,7 @@ module Alu_ops = struct
   let aui = alu_op_of_int 11
 end
 
-let circuit _ _ =
-  let zero = Hardcaml.Signal.of_int 0 ~width:1 in
-  {
-    O.alu_op = Alu_ops.add;
-    O.alu_src = zero;
-    O.reg_write = zero;
-    O.mem_read = zero;
-    O.mem_write = zero;
-    O.mem_to_reg = zero;
-    O.pc_src = zero;
-  }
+let circuit _ _ = { O.alu_op = Alu_ops.add }
 
 let hierarchical scope input =
   let module H = Hardcaml.Hierarchy.In_scope (I) (O) in
