@@ -26,9 +26,11 @@ let circuit _ (input : _ I.t) =
           (Control.Alu_ops.sll, [ result <-- log_shift Signal.sll b a ]);
           (Control.Alu_ops.srl, [ result <-- log_shift Signal.srl b a ]);
           (Control.Alu_ops.sra, [ result <-- log_shift Signal.sra b a ]);
-          (Control.Alu_ops.slt, [ result <-- uresize (a <: b) 32 ]);
-          (Control.Alu_ops.sltu, [ result <-- uresize (a <+ b) 32 ]);
-          (Control.Alu_ops.lui, [ result <-- b.:[(15, 0)] @: of_string "16'b0" ]);
+          (Control.Alu_ops.slt, [ result <-- uresize (a <+ b) 32 ]);
+          (Control.Alu_ops.sltu, [ result <-- uresize (a <: b) 32 ]);
+          (Control.Alu_ops.lui, [ result <-- b.:[(19, 0)] @: of_string "12'h0" ]);
+          ( Control.Alu_ops.aui,
+            [ result <-- (b.:[(19, 0)] @: of_string "12'h0") +: a ] );
         ];
     ];
   { O.result = Always.Variable.value result }

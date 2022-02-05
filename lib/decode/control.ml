@@ -39,6 +39,8 @@ module Alu_ops = struct
   let sltu = alu_op_of_int 9
 
   let lui = alu_op_of_int 10
+
+  let aui = alu_op_of_int 11
 end
 
 let circuit _ _ =
