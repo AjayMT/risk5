@@ -1,10 +1,10 @@
 open Hardcaml
 open Hardcaml_waveterm
-module Simulator = Cyclesim.With_interface (Risk5__Alu.I) (Risk5__Alu.O)
+module Simulator = Cyclesim.With_interface (Risk5.Alu.I) (Risk5.Alu.O)
 
 let testbench which =
   let scope = Scope.create ~flatten_design:true () in
-  let sim = Simulator.create (Risk5__Alu.circuit scope) in
+  let sim = Simulator.create (Risk5.Alu.circuit scope) in
   let waves, sim = Waveform.create sim in
   let inputs = Cyclesim.inputs sim in
   let step a b op =
@@ -14,7 +14,7 @@ let testbench which =
     Cyclesim.cycle sim
   in
 
-  let open Risk5__Control.Alu_ops in
+  let open Risk5.Control.Alu_ops in
   (match which with
   | `first ->
       step "32'h1" "32'h2" add;
