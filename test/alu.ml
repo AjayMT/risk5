@@ -14,7 +14,7 @@ let testbench which =
     Cyclesim.cycle sim
   in
 
-  let open Risk5.Control.Alu_ops in
+  let open Risk5.Decode.Alu_ops in
   (match which with
   | `first ->
       step "32'h1" "32'h2" add;

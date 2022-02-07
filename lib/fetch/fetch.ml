@@ -25,4 +25,4 @@ let circuit program _ (input : _ I.t) =
 
 let hierarchical program scope input =
   let module H = Hardcaml.Hierarchy.In_scope (I) (O) in
-  H.hierarchical ~scope ~name:"control" (circuit program) input
+  H.hierarchical ~scope ~name:"fetch" (circuit program) input

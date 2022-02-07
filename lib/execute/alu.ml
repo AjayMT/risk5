@@ -18,18 +18,18 @@ let circuit _ (input : _ I.t) =
     [
       switch op
         [
-          (Control.Alu_ops.add, [ result <-- a +: b ]);
-          (Control.Alu_ops.sub, [ result <-- a -: b ]);
-          (Control.Alu_ops.and_, [ result <-- (a &: b) ]);
-          (Control.Alu_ops.or_, [ result <-- (a |: b) ]);
-          (Control.Alu_ops.xor, [ result <-- a ^: b ]);
-          (Control.Alu_ops.sll, [ result <-- log_shift Signal.sll b a ]);
-          (Control.Alu_ops.srl, [ result <-- log_shift Signal.srl b a ]);
-          (Control.Alu_ops.sra, [ result <-- log_shift Signal.sra b a ]);
-          (Control.Alu_ops.slt, [ result <-- uresize (a <+ b) 32 ]);
-          (Control.Alu_ops.sltu, [ result <-- uresize (a <: b) 32 ]);
-          (Control.Alu_ops.lui, [ result <-- b.:[(19, 0)] @: of_string "12'h0" ]);
-          ( Control.Alu_ops.aui,
+          (Decode.Alu_ops.add, [ result <-- a +: b ]);
+          (Decode.Alu_ops.sub, [ result <-- a -: b ]);
+          (Decode.Alu_ops.and_, [ result <-- (a &: b) ]);
+          (Decode.Alu_ops.or_, [ result <-- (a |: b) ]);
+          (Decode.Alu_ops.xor, [ result <-- a ^: b ]);
+          (Decode.Alu_ops.sll, [ result <-- log_shift Signal.sll b a ]);
+          (Decode.Alu_ops.srl, [ result <-- log_shift Signal.srl b a ]);
+          (Decode.Alu_ops.sra, [ result <-- log_shift Signal.sra b a ]);
+          (Decode.Alu_ops.slt, [ result <-- uresize (a <+ b) 32 ]);
+          (Decode.Alu_ops.sltu, [ result <-- uresize (a <: b) 32 ]);
+          (Decode.Alu_ops.lui, [ result <-- b.:[(19, 0)] @: of_string "12'h0" ]);
+          ( Decode.Alu_ops.aui,
             [ result <-- (b.:[(19, 0)] @: of_string "12'h0") +: a ] );
         ];
     ];
