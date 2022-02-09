@@ -31,7 +31,17 @@ let circuit _ (input : _ I.t) =
     Signal.multiport_memory 32 ~write_ports:[| write_port |]
       ~read_addresses:[| input.read_reg_1; input.read_reg_2 |]
   in
-  { O.read_data_1 = regfile.(0); O.read_data_2 = regfile.(1) }
+  let rd1 =
+    Signal.mux
+      (input.read_reg_1 ==: Signal.zero 5)
+      [ regfile.(0); Signal.zero 32 ]
+  in
+  let rd2 =
+    Signal.mux
+      (input.read_reg_2 ==: Signal.zero 5)
+      [ regfile.(1); Signal.zero 32 ]
+  in
+  { O.read_data_1 = rd1; O.read_data_2 = rd2 }
 
 let hierarchical scope input =
   let module H = Hardcaml.Hierarchy.In_scope (I) (O) in

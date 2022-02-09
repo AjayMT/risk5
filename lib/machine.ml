@@ -18,6 +18,7 @@ let circuit program scope (input : _ I.t) =
       Decode.I.instruction = fetch.instruction;
       clock = input.clock;
       writeback_data = Signal.wire 32;
+      pc = fetch.pc;
     }
   in
   let decode = Decode.hierarchical scope decode_input in
