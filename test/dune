@@ -3,4 +3,6 @@
  (inline_tests)
  (libraries hardcaml hardcaml_waveterm risk5)
  (preprocess
-  (pps ppx_jane ppx_expect)))
+  (pps ppx_jane ppx_expect ppx_blob))
+ (preprocessor_deps
+  (file arith_machine_program/prog.txt)))
