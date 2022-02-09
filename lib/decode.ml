@@ -52,12 +52,12 @@ let circuit scope (input : _ I.t) =
   let regfile_input =
     {
       Regfile.I.clock = input.clock;
-      read_reg_1 = input.instruction.:[(15, 19)];
       (* rs1 *)
-      read_reg_2 = input.instruction.:[(20, 24)];
+      read_reg_1 = input.instruction.:[(19, 15)];
       (* rs2 *)
-      write_reg = input.instruction.:[(7, 11)];
+      read_reg_2 = input.instruction.:[(24, 20)];
       (* rd *)
+      write_reg = input.instruction.:[(11, 7)];
       write_data = input.writeback_data;
       write_enable = Signal.vdd;
     }
@@ -120,9 +120,9 @@ let circuit scope (input : _ I.t) =
   let ori = i_type &: (funct3 ==: i3 6) in
   let andi = i_type &: (funct3 ==: i3 7) in
 
+  (* here for consistency *)
   let add = addi |: addr in
   ignore add;
-  (* here for consistency *)
   let or_ = orr |: ori in
   let and_ = andr |: andi in
   let slt = sltr |: slti in
