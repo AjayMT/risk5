@@ -3,7 +3,7 @@ open Hardcaml_waveterm
 module Simulator = Cyclesim.With_interface (Risk5.Machine.I) (Risk5.Machine.O)
 
 let program =
-  let prog_text = [%blob "arith_machine_program/prog.txt"] in
+  let prog_text = [%blob "test_programs/arith_machine.txt"] in
   let prog_lines =
     List.filter (fun s -> String.length s > 0)
     @@ String.split_on_char '\n' prog_text

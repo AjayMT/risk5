@@ -4,7 +4,7 @@ module Simulator = Cyclesim.With_interface (Risk5.Memory.I) (Risk5.Memory.O)
 
 let testbench () =
   let scope = Scope.create ~flatten_design:true () in
-  let sim = Simulator.create (Risk5.Memory.circuit scope) in
+  let sim = Simulator.create (Risk5.Memory.circuit 8 scope) in
   let waves, sim = Waveform.create sim in
   let inputs = Cyclesim.inputs sim in
   let step ~address ~wwidth ~wdata ~wenable =

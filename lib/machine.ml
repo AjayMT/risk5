@@ -28,9 +28,30 @@ let circuit program scope (input : _ I.t) =
   in
   let alu = Alu.hierarchical scope alu_input in
 
-  decode_input.writeback_data <== alu.result;
+  let mem_input =
+    {
+      Memory.I.clock = input.clock;
+      address = alu.result;
+      write_width = decode.mem_write_width;
+      write_data = decode.mem_write_data;
+      write_enable = decode.mem_write_enable;
+    }
+  in
+  let mem = Memory.hierarchical 512 scope mem_input in
 
-  { O.writeback_data = alu.result }
+  let writeback_input =
+    {
+      Writeback.I.alu_input = alu.result;
+      mem_input = mem.read_data;
+      mem_select = decode.writeback_mem;
+      mem_width = decode.writeback_width;
+    }
+  in
+  let writeback = Writeback.hierarchical scope writeback_input in
+
+  decode_input.writeback_data <== writeback.writeback_data;
+
+  { O.writeback_data = writeback.writeback_data }
 
 let hierarchical program scope input =
   let module H = Hierarchy.In_scope (I) (O) in

@@ -16,7 +16,7 @@ module O = struct
   type 'a t = { read_data : 'a [@bits 32] } [@@deriving sexp_of, hardcaml]
 end
 
-let circuit _ (input : _ I.t) =
+let circuit capacity _ (input : _ I.t) =
   let i32 = Signal.of_int ~width:32 in
 
   let make_write_port width range offset =
@@ -48,10 +48,10 @@ let circuit _ (input : _ I.t) =
     |]
   in
 
-  let mem = Signal.multiport_memory 8 ~write_ports ~read_addresses in
+  let mem = Signal.multiport_memory capacity ~write_ports ~read_addresses in
 
   { O.read_data = mem.(3) @: mem.(2) @: mem.(1) @: mem.(0) }
 
-let hierarchical scope input =
+let hierarchical capacity scope input =
   let module H = Hierarchy.In_scope (I) (O) in
-  H.hierarchical ~scope ~name:"memory" circuit input
+  H.hierarchical ~scope ~name:"memory" (circuit capacity) input

@@ -16,6 +16,11 @@ module O = struct
     alu_op : 'a; [@bits 4]
     alu_a : 'a; [@bits 32]
     alu_b : 'a; [@bits 32]
+    mem_write_data : 'a; [@bits 32]
+    mem_write_width : 'a; [@bits 3]
+    mem_write_enable : 'a; [@bits 1]
+    writeback_mem : 'a; [@bits 1]
+    writeback_width : 'a; [@bits 3]
   }
   [@@deriving sexp_of, hardcaml]
 end
@@ -59,7 +64,7 @@ let circuit scope (input : _ I.t) =
       (* rd *)
       write_reg = input.instruction.:[(11, 7)];
       write_data = input.writeback_data;
-      write_enable = Signal.vdd;
+      write_enable = Signal.wire 1;
     }
   in
   let regfile = Regfile.hierarchical scope regfile_input in
@@ -87,17 +92,32 @@ let circuit scope (input : _ I.t) =
     sra     rd rs1 rs2 31..25=32 14..12=5 6..2=0x0C 1..0=3
     or      rd rs1 rs2 31..25=0  14..12=6 6..2=0x0C 1..0=3
     and     rd rs1 rs2 31..25=0  14..12=7 6..2=0x0C 1..0=3
+
+    lb      rd rs1       imm12 14..12=0 6..2=0x00 1..0=3
+    lh      rd rs1       imm12 14..12=1 6..2=0x00 1..0=3
+    lw      rd rs1       imm12 14..12=2 6..2=0x00 1..0=3
+    lbu     rd rs1       imm12 14..12=4 6..2=0x00 1..0=3
+    lhu     rd rs1       imm12 14..12=5 6..2=0x00 1..0=3
+
+    sb     imm12hi rs1 rs2 imm12lo 14..12=0 6..2=0x08 1..0=3
+    sh     imm12hi rs1 rs2 imm12lo 14..12=1 6..2=0x08 1..0=3
+    sw     imm12hi rs1 rs2 imm12lo 14..12=2 6..2=0x08 1..0=3
    *)
   let opcode = input.instruction.:[(6, 0)] in
   let funct7 = input.instruction.:[(31, 25)] in
   let funct3 = input.instruction.:[(14, 12)] in
   let imm12 = input.instruction.:[(31, 20)] in
   let imm20 = input.instruction.:[(31, 12)] in
+  let imm7 = input.instruction.:[(31, 25)] in
+  let imm4 = input.instruction.:[(11, 7)] in
+  let imm_store = imm7 @: imm4 in
 
   let lui = opcode ==: Signal.of_string "7'b0110111" in
   let aui = opcode ==: Signal.of_string "7'b0010111" in
   let i_type = opcode ==: Signal.of_string "7'b0010011" in
   let r_type = opcode ==: Signal.of_string "7'b0110011" in
+  let store = opcode ==: Signal.of_string "7'b0100011" in
+  let load = opcode ==: Signal.of_string "7'b0000011" in
 
   let zero7 = Signal.zero 7 in
   let _327 = Signal.of_string "7'd32" in
@@ -121,7 +141,7 @@ let circuit scope (input : _ I.t) =
   let andi = i_type &: (funct3 ==: i3 7) in
 
   (* here for consistency *)
-  let add = addi |: addr in
+  let add = addi |: addr |: load |: store in
   ignore add;
   let or_ = orr |: ori in
   let and_ = andr |: andi in
@@ -135,7 +155,9 @@ let circuit scope (input : _ I.t) =
   let alu_op3 = slt |: sltu |: lui |: aui in
 
   let alu_op = alu_op3 @: alu_op2 @: alu_op1 @: alu_op0 in
-  let alu_b_src = (lui |: aui) @: i_type in
+  let alu_b_src = (lui |: aui |: store) @: (i_type |: load |: store) in
+
+  regfile_input.write_enable <== Signal.( ~: ) store;
 
   {
     O.alu_op;
@@ -143,8 +165,16 @@ let circuit scope (input : _ I.t) =
     alu_b =
       Signal.mux alu_b_src
         [
-          regfile.read_data_2; Signal.sresize imm12 32; Signal.sresize imm20 32;
+          regfile.read_data_2;
+          Signal.sresize imm12 32;
+          Signal.sresize imm20 32;
+          Signal.sresize imm_store 32;
         ];
+    mem_write_enable = store;
+    mem_write_width = funct3;
+    mem_write_data = regfile.read_data_2;
+    writeback_mem = load;
+    writeback_width = funct3;
   }
 
 let hierarchical scope input =
