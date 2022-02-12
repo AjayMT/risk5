@@ -10,7 +10,13 @@ module O = struct
 end
 
 let circuit program scope (input : _ I.t) =
-  let fetch_input = { Fetch.I.clock = input.clock } in
+  let fetch_input =
+    {
+      Fetch.I.clock = input.clock;
+      branch_target = Signal.wire 32;
+      pc_sel = Signal.wire 1;
+    }
+  in
   let fetch = Fetch.hierarchical program scope fetch_input in
 
   let decode_input =
@@ -22,6 +28,9 @@ let circuit program scope (input : _ I.t) =
     }
   in
   let decode = Decode.hierarchical scope decode_input in
+
+  fetch_input.branch_target <== decode.branch_target;
+  fetch_input.pc_sel <== decode.pc_sel;
 
   let alu_input =
     { Alu.I.a = decode.alu_a; b = decode.alu_b; op = decode.alu_op }
