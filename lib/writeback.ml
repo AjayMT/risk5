@@ -3,33 +3,41 @@ open Hardcaml.Signal
 
 module I = struct
   type 'a t = {
-    alu_input : 'a; [@bits 32]
-    mem_input : 'a; [@bits 32]
-    mem_select : 'a; [@bits 1]
+    alu_data : 'a; [@bits 32]
+    mem_data : 'a; [@bits 32]
     mem_width : 'a; [@bits 3]
+    pc_data : 'a; [@bits 32]
+    alu_mem_pc_select : 'a; [@bits 2]
+    enable : 'a; [@bits 1]
   }
   [@@deriving sexp_of, hardcaml]
 end
 
 module O = struct
-  type 'a t = { writeback_data : 'a [@bits 32] } [@@deriving sexp_of, hardcaml]
+  type 'a t = {
+    writeback_data : 'a; [@bits 32]
+    writeback_enable : 'a; [@bits 1]
+  }
+  [@@deriving sexp_of, hardcaml]
 end
 
 let circuit _ (input : _ I.t) =
   let mem_output =
     Signal.mux input.mem_width
       [
-        Signal.sresize input.mem_input.:[(7, 0)] 32;
-        Signal.sresize input.mem_input.:[(15, 0)] 32;
-        input.mem_input;
+        Signal.sresize input.mem_data.:[(7, 0)] 32;
+        Signal.sresize input.mem_data.:[(15, 0)] 32;
+        input.mem_data;
         Signal.zero 32;
-        Signal.uresize input.mem_input.:[(7, 0)] 32;
-        Signal.uresize input.mem_input.:[(15, 0)] 32;
+        Signal.uresize input.mem_data.:[(7, 0)] 32;
+        Signal.uresize input.mem_data.:[(15, 0)] 32;
       ]
   in
   {
     O.writeback_data =
-      Signal.mux input.mem_select [ input.alu_input; mem_output ];
+      Signal.mux input.alu_mem_pc_select
+        [ input.alu_data; mem_output; input.pc_data ];
+    writeback_enable = input.enable;
   }
 
 let hierarchical scope input =

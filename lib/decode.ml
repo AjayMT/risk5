@@ -6,6 +6,7 @@ module I = struct
     instruction : 'a; [@bits 32]
     clock : 'a; [@bits 1]
     writeback_data : 'a; [@bits 32]
+    writeback_enable : 'a; [@bits 32]
     pc : 'a; [@bits 32]
   }
   [@@deriving sexp_of, hardcaml]
@@ -19,10 +20,16 @@ module O = struct
     mem_write_data : 'a; [@bits 32]
     mem_write_width : 'a; [@bits 3]
     mem_write_enable : 'a; [@bits 1]
-    writeback_mem : 'a; [@bits 1]
-    writeback_width : 'a; [@bits 3]
-    branch_target : 'a; [@bits 32]
-    pc_sel : 'a; [@bits 1]
+    writeback_alu_mem_pc_select : 'a; [@bits 2]
+    writeback_mem_width : 'a; [@bits 3]
+    writeback_enable : 'a; [@bits 1]
+    branch_cmp_a : 'a; [@bits 32]
+    branch_cmp_b : 'a; [@bits 32]
+    branch_cmp_op : 'a; [@bits 3]
+    next_pc_sel : 'a; [@bits 2]
+    next_pc_branch_target : 'a; [@bits 32]
+    next_pc_jal_target : 'a; [@bits 32]
+    next_pc_pc_plus_4 : 'a; [@bits 32]
   }
   [@@deriving sexp_of, hardcaml]
 end
@@ -65,8 +72,8 @@ let circuit scope (input : _ I.t) =
       read_reg_2 = input.instruction.:[(24, 20)];
       (* rd *)
       write_reg = input.instruction.:[(11, 7)];
-      write_data = Signal.wire 32;
-      write_enable = Signal.wire 1;
+      write_data = input.writeback_data;
+      write_enable = input.writeback_enable;
     }
   in
   let regfile = Regfile.hierarchical scope regfile_input in
@@ -142,8 +149,6 @@ let circuit scope (input : _ I.t) =
   let store = check_opcode 0x8 in
   let load = check_opcode 0 in
 
-  ignore @@ (b_type, jalr);
-
   let zero7 = Signal.zero 7 in
   let _327 = Signal.of_string "7'd32" in
   let i3 = Signal.of_int ~width:3 in
@@ -165,18 +170,28 @@ let circuit scope (input : _ I.t) =
   let ori = i_type &: (funct3 ==: i3 6) in
   let andi = i_type &: (funct3 ==: i3 7) in
 
-  (* JAL offset is encoded as a multiple of 2, so we have to shift it left by 1 to get
-     the real value *)
   let jal_imm20 =
     imm20.:(19) @: imm20.:[(7, 0)] @: imm20.:(8) @: imm20.:[(18, 9)]
   in
   let jal_offset =
     Signal.sresize (Signal.log_shift Signal.sll jal_imm20 Signal.vdd) 32
   in
-  let branch_target = input.pc +: jal_offset in
+  let jal_target = input.pc +: jal_offset in
+  let branch_imm =
+    input.instruction.:[(11, 8)]
+    @: input.instruction.:[(30, 25)]
+    @: input.instruction.:(7) @: input.instruction.:(31)
+  in
+  let branch_offset =
+    Signal.sresize (Signal.log_shift Signal.sll branch_imm Signal.vdd) 32
+  in
+  let branch_target = input.pc +: branch_offset in
+  let pc_plus_4 = input.pc +: Signal.of_string "32'd4" in
+
+  let next_pc_sel = (jal |: jalr) @: (b_type |: jalr) in
 
   (* here for consistency *)
-  let add = addi |: addr |: load |: store in
+  let add = addi |: addr |: load |: store |: jalr in
   ignore add;
   let or_ = orr |: ori in
   let and_ = andr |: andi in
@@ -190,12 +205,10 @@ let circuit scope (input : _ I.t) =
   let alu_op3 = slt |: sltu |: lui |: aui in
 
   let alu_op = alu_op3 @: alu_op2 @: alu_op1 @: alu_op0 in
-  let alu_b_src = (lui |: aui |: store) @: (i_type |: load |: store) in
+  let alu_b_src = (lui |: aui |: store) @: (i_type |: load |: store |: jalr) in
 
-  regfile_input.write_enable <== Signal.( ~: ) store;
-  regfile_input.write_data
-  <== Signal.mux jal
-        [ input.writeback_data; input.pc +: Signal.of_string "32'd4" ];
+  let writeback_alu_mem_pc_select = (jal |: jalr) @: load in
+  let writeback_enable = Signal.( ~: ) (store |: b_type) in
 
   {
     O.alu_op;
@@ -211,10 +224,16 @@ let circuit scope (input : _ I.t) =
     mem_write_enable = store;
     mem_write_width = funct3;
     mem_write_data = regfile.read_data_2;
-    writeback_mem = load;
-    writeback_width = funct3;
-    branch_target;
-    pc_sel = jal;
+    writeback_alu_mem_pc_select;
+    writeback_enable;
+    writeback_mem_width = funct3;
+    branch_cmp_op = funct3;
+    branch_cmp_a = regfile.read_data_1;
+    branch_cmp_b = regfile.read_data_2;
+    next_pc_sel;
+    next_pc_branch_target = branch_target;
+    next_pc_jal_target = jal_target;
+    next_pc_pc_plus_4 = pc_plus_4;
   }
 
 let hierarchical scope input =
