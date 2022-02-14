@@ -122,6 +122,12 @@ let circuit scope (input : _ I.t) =
     sb     imm12hi rs1 rs2 imm12lo 14..12=0 6..2=0x08 1..0=3
     sh     imm12hi rs1 rs2 imm12lo 14..12=1 6..2=0x08 1..0=3
     sw     imm12hi rs1 rs2 imm12lo 14..12=2 6..2=0x08 1..0=3
+
+    Source: https://github.com/riscv/riscv-opcodes/blob/master/opcodes-rv64i
+
+    slli    rd rs1 31..26=0  shamt 14..12=1 6..2=0x04 1..0=3
+    srli    rd rs1 31..26=0  shamt 14..12=5 6..2=0x04 1..0=3
+    srai    rd rs1 31..26=16 shamt 14..12=5 6..2=0x04 1..0=3
    *)
   let opcode = input.instruction.:[(6, 0)] in
   let funct7 = input.instruction.:[(31, 25)] in
@@ -154,19 +160,28 @@ let circuit scope (input : _ I.t) =
   let i3 = Signal.of_int ~width:3 in
   let addr = r_type &: (funct7 ==: zero7) &: (funct3 ==: i3 0) in
   let sub = r_type &: (funct7 ==: _327) &: (funct3 ==: i3 0) in
-  let sll = r_type &: (funct7 ==: zero7) &: (funct3 ==: i3 1) in
+  let sllr = r_type &: (funct7 ==: zero7) &: (funct3 ==: i3 1) in
   let sltr = r_type &: (funct7 ==: zero7) &: (funct3 ==: i3 2) in
   let sltur = r_type &: (funct7 ==: zero7) &: (funct3 ==: i3 3) in
   let xorr = r_type &: (funct7 ==: zero7) &: (funct3 ==: i3 4) in
-  let srl = r_type &: (funct7 ==: zero7) &: (funct3 ==: i3 5) in
-  let sra = r_type &: (funct7 ==: _327) &: (funct3 ==: i3 5) in
+  let srlr = r_type &: (funct7 ==: zero7) &: (funct3 ==: i3 5) in
+  let srar = r_type &: (funct7 ==: _327) &: (funct3 ==: i3 5) in
   let orr = r_type &: (funct7 ==: zero7) &: (funct3 ==: i3 6) in
   let andr = r_type &: (funct7 ==: zero7) &: (funct3 ==: i3 7) in
 
   let addi = i_type &: (funct3 ==: i3 0) in
+  let slli = i_type &: (funct3 ==: i3 1) in
   let slti = i_type &: (funct3 ==: i3 2) in
   let sltui = i_type &: (funct3 ==: i3 3) in
   let xori = i_type &: (funct3 ==: i3 4) in
+  let srli =
+    i_type &: (funct3 ==: i3 5) &: (imm12.:[(11, 5)] ==: Signal.of_string "7'd0")
+  in
+  let srai =
+    i_type
+    &: (funct3 ==: i3 5)
+    &: (imm12.:[(11, 5)] ==: Signal.of_string "7'd32")
+  in
   let ori = i_type &: (funct3 ==: i3 6) in
   let andi = i_type &: (funct3 ==: i3 7) in
 
@@ -193,6 +208,9 @@ let circuit scope (input : _ I.t) =
   (* here for consistency *)
   let add = addi |: addr |: load |: store |: jalr in
   ignore add;
+  let sll = sllr |: slli in
+  let srl = srlr |: srli in
+  let sra = srar |: srai in
   let or_ = orr |: ori in
   let and_ = andr |: andi in
   let slt = sltr |: slti in

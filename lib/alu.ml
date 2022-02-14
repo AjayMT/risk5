@@ -13,6 +13,7 @@ end
 let circuit _ (input : _ I.t) =
   let result = Always.Variable.wire ~default:(of_string "32'b0") in
   let a, b, op = (input.a, input.b, input.op) in
+  let shamt = Signal.uresize b.:[(4, 0)] 32 in
   let open Always in
   compile
     [
@@ -23,9 +24,9 @@ let circuit _ (input : _ I.t) =
           (Decode.Alu_ops.and_, [ result <-- (a &: b) ]);
           (Decode.Alu_ops.or_, [ result <-- (a |: b) ]);
           (Decode.Alu_ops.xor, [ result <-- a ^: b ]);
-          (Decode.Alu_ops.sll, [ result <-- log_shift Signal.sll b a ]);
-          (Decode.Alu_ops.srl, [ result <-- log_shift Signal.srl b a ]);
-          (Decode.Alu_ops.sra, [ result <-- log_shift Signal.sra b a ]);
+          (Decode.Alu_ops.sll, [ result <-- log_shift Signal.sll a shamt ]);
+          (Decode.Alu_ops.srl, [ result <-- log_shift Signal.srl a shamt ]);
+          (Decode.Alu_ops.sra, [ result <-- log_shift Signal.sra a shamt ]);
           (Decode.Alu_ops.slt, [ result <-- uresize (a <+ b) 32 ]);
           (Decode.Alu_ops.sltu, [ result <-- uresize (a <: b) 32 ]);
           (Decode.Alu_ops.lui, [ result <-- b.:[(19, 0)] @: of_string "12'h0" ]);
