@@ -178,9 +178,9 @@ let circuit scope (input : _ I.t) =
   in
   let jal_target = input.pc +: jal_offset in
   let branch_imm =
-    input.instruction.:[(11, 8)]
+    input.instruction.:(31) @: input.instruction.:(7)
     @: input.instruction.:[(30, 25)]
-    @: input.instruction.:(7) @: input.instruction.:(31)
+    @: input.instruction.:[(11, 8)]
   in
   let branch_offset =
     Signal.sresize (Signal.log_shift Signal.sll branch_imm Signal.vdd) 32
