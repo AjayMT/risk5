@@ -8,17 +8,12 @@ module I = struct
     mem_width : 'a; [@bits 3]
     pc_data : 'a; [@bits 32]
     alu_mem_pc_select : 'a; [@bits 2]
-    enable : 'a; [@bits 1]
   }
   [@@deriving sexp_of, hardcaml]
 end
 
 module O = struct
-  type 'a t = {
-    writeback_data : 'a; [@bits 32]
-    writeback_enable : 'a; [@bits 1]
-  }
-  [@@deriving sexp_of, hardcaml]
+  type 'a t = { write_data : 'a [@bits 32] } [@@deriving sexp_of, hardcaml]
 end
 
 let circuit _ (input : _ I.t) =
@@ -34,10 +29,9 @@ let circuit _ (input : _ I.t) =
       ]
   in
   {
-    O.writeback_data =
+    O.write_data =
       Signal.mux input.alu_mem_pc_select
         [ input.alu_data; mem_output; input.pc_data ];
-    writeback_enable = input.enable;
   }
 
 let hierarchical scope input =
