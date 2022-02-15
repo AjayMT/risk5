@@ -111,4 +111,4 @@ let circuit program scope (input : _ I.t) =
 
 let hierarchical program scope input =
   let module H = Hierarchy.In_scope (I) (O) in
-  H.hierarchical ~scope ~name:"decode" (circuit program) input
+  H.hierarchical ~scope ~name:"machine" (circuit program) input
