@@ -29,7 +29,21 @@ To produce Verilog for a given program, build the `risk5` executable with `dune 
 risk5 <program> <output>
 ```
 
-For example, `risk5 test/test_programs/load_store.txt output.v` will write Verilog that describes the CPU design and includes the program `load_store.txt` to `output.v`. VHDL generation and interactive simulation are currently unimplemented.
+For example, `risk5 test/test_programs/load_store.txt output.v` will write Verilog that describes the CPU design and includes the program `load_store.txt` to `output.v`. To generate VHDL or simulate the CPU, use the `--vhdl` and `--waves` options as described in the `risk5` usage instructions:
+```
+Usage:
+	risk5 [--vhdl] <program_path> <output_path>
+	risk5 --waves <num_steps> <program_path>
+
+Run a RISC-V program on the Risk5 CPU or output a Verilog/VHDL specification
+that includes the program data. Programs are formatted as plaintext hexdump files;
+see test/test_programs/ in the Risk5 source directory for examples.
+
+  --vhdl 		Output VHDL instead of Verilog
+  --waves <num_steps>	Simulate num_steps instructions and display waveforms in an interactive viewer
+  --help 		Display this list of options
+  -help 		Display this list of options
+```
 
 ## Acknowledgements
 The following resources were very helpful in learning how to use Hardcaml and implementing a RISC-V CPU:

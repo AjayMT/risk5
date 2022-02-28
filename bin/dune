@@ -1,4 +1,4 @@
 (executable
  (public_name risk5)
  (name main)
- (libraries risk5))
+ (libraries risk5 hardcaml_waveterm.interactive))
