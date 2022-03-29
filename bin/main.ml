@@ -58,6 +58,7 @@ let () =
   in
 
   Arg.parse opt_list (fun a -> pos_args := a :: !pos_args) usage_msg;
+  pos_args := List.rev !pos_args;
 
   (match (!help, !waves > 0, !pos_args) with
   | true, _, _ ->
